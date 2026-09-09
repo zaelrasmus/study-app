@@ -9,7 +9,10 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    // Edra's vendored source imports with explicit .ts extensions. Safe here
+    // because SvelteKit type-checks with noEmit and Vite does the resolving.
+    "allowImportingTsExtensions": true
   }
   // Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
   // except $lib which is handled by https://svelte.dev/docs/kit/configuration#files

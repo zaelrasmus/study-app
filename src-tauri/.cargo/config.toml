@@ -1,0 +1,13 @@
+# This project's dependency tree contains several crates that are individually
+# memory-hungry to compile -- `windows`, `tauri-utils`, `sqlx-macros-core`.
+#
+# Cargo defaults to one job per logical core (12 here), and twelve concurrent
+# rustc processes exhaust the Windows commit limit on a 16 GB machine: the build
+# fails with "The paging file is too small for this operation" (os error 1455)
+# part-way through, leaving a half-written target directory whose stale metadata
+# then breaks subsequent builds in confusing ways.
+#
+# Four jobs still uses the cores well and leaves headroom. Raise it if the
+# machine gets more RAM.
+[build]
+jobs = 4

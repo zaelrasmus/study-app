@@ -1,0 +1,13 @@
+-- The source pane needs to know what the source *is*.
+--
+-- Two cases, both already in the model once this column exists:
+--   * the long note being distilled, when writing an atomic note from it
+--   * the previous version of this note, when re-recalling it
+--
+-- The second needs no storage: memory mode holds the outgoing body for the
+-- length of the session and reveals it at the Contrast step. Only the first
+-- needs a durable link.
+--
+-- ON DELETE SET NULL, because losing the source must never take the note with
+-- it -- and a note whose source is gone is still a note.
+ALTER TABLE notes ADD COLUMN source_note_id TEXT REFERENCES notes (id) ON DELETE SET NULL;

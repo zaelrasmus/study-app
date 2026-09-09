@@ -1,0 +1,404 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn-svelte/tailwind.css";
+@import "@xyflow/svelte/dist/base.css";
+
+/* Tool chrome is a precise grotesk; prose is an editorial serif; labels and
+   numbers are mono. The split is the point: the thing you are *making* reads
+   like a document, the thing you are making it *with* reads like an instrument. */
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+@import "@fontsource-variable/newsreader";
+
+@custom-variant dark (&:is(.dark *));
+
+/* The chrome is zero-chroma: emphasis comes from weight, contrast and negative
+   space, never from hue. Exactly two coloured tokens exist, at the bottom of
+   this block, and they encode knowledge state and nothing else -- no decorative
+   accents, no coloured buttons. (The close button's red hover is a platform
+   convention and is hard-coded there.) */
+:root {
+	--background: oklch(1 0 0);
+	--foreground: oklch(0.14 0 0);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.14 0 0);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.14 0 0);
+	--primary: oklch(0.14 0 0);
+	--primary-foreground: oklch(0.99 0 0);
+	--secondary: oklch(0.96 0 0);
+	--secondary-foreground: oklch(0.14 0 0);
+	--muted: oklch(0.965 0 0);
+	--muted-foreground: oklch(0.52 0 0);
+	--accent: oklch(0.938 0 0);
+	--accent-foreground: oklch(0.14 0 0);
+	--destructive: oklch(0.42 0 0);
+	--border: oklch(0.905 0 0);
+	--input: oklch(0.89 0 0);
+	--ring: oklch(0.14 0 0);
+	--radius: 0.5rem;
+
+	--sidebar: oklch(0.971 0 0);
+	--sidebar-foreground: oklch(0.14 0 0);
+	--sidebar-primary: oklch(0.14 0 0);
+	--sidebar-primary-foreground: oklch(0.99 0 0);
+	--sidebar-accent: oklch(0.918 0 0);
+	--sidebar-accent-foreground: oklch(0.14 0 0);
+	--sidebar-border: oklch(0.905 0 0);
+	--sidebar-ring: oklch(0.14 0 0);
+
+	/* Drafting surface. Hairlines are deliberately near-invisible: the drawing
+	   is the signal, the paper is not. */
+	--chrome: oklch(0.97 0 0);
+	--hairline: oklch(0 0 0 / 8%);
+	--hairline-strong: oklch(0 0 0 / 18%);
+	--canvas: oklch(0.985 0 0);
+	--canvas-dot: oklch(0 0 0 / 11%);
+	--frame-line: oklch(0 0 0 / 20%);
+	--ink: oklch(0.14 0 0);
+
+	/* The only colour in the application, and it encodes knowledge state and
+	   nothing else. Two hues, not four: one for the state worth reaching, one
+	   for the states that name an action. Four would read as a grade, and a
+	   grade is a judgement. Both sit at low chroma so they belong to the
+	   monochrome palette rather than interrupting it. */
+	--state-recalled: oklch(0.52 0.135 227);
+	--state-recalled-soft: oklch(0.52 0.135 227 / 10%);
+	--state-action: oklch(0.61 0.155 55);
+	--state-action-soft: oklch(0.61 0.155 55 / 11%);
+
+	/* Card colours: a *chosen* colour, not an encoded one.
+	   Deliberately a different channel from state — these are pale fills, like
+	   tinted paper, while state stays a thin saturated rule and a mark. A card
+	   can be yellow and recalled and both stay readable.
+	   Hues avoid the two state hues (227 and 55) so a colour can never be
+	   mistaken for a signal. */
+	--card-butter: oklch(0.95 0.055 95);
+	--card-rose: oklch(0.94 0.045 15);
+	--card-violet: oklch(0.94 0.04 305);
+	--card-moss: oklch(0.94 0.05 150);
+	--card-slate: oklch(0.945 0.012 260);
+	--card-clay: oklch(0.94 0.035 40);
+	--card-edge: oklch(0 0 0 / 14%);
+}
+
+.dark {
+	--background: oklch(0.155 0 0);
+	--foreground: oklch(0.96 0 0);
+	--card: oklch(0.185 0 0);
+	--card-foreground: oklch(0.96 0 0);
+	--popover: oklch(0.195 0 0);
+	--popover-foreground: oklch(0.96 0 0);
+	--primary: oklch(0.96 0 0);
+	--primary-foreground: oklch(0.145 0 0);
+	--secondary: oklch(0.24 0 0);
+	--secondary-foreground: oklch(0.96 0 0);
+	--muted: oklch(0.235 0 0);
+	--muted-foreground: oklch(0.63 0 0);
+	--accent: oklch(0.275 0 0);
+	--accent-foreground: oklch(0.96 0 0);
+	--destructive: oklch(0.7 0 0);
+	--border: oklch(1 0 0 / 11%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.7 0 0);
+
+	--sidebar: oklch(0.118 0 0);
+	--sidebar-foreground: oklch(0.96 0 0);
+	--sidebar-primary: oklch(0.96 0 0);
+	--sidebar-primary-foreground: oklch(0.145 0 0);
+	--sidebar-accent: oklch(0.245 0 0);
+	--sidebar-accent-foreground: oklch(0.96 0 0);
+	--sidebar-border: oklch(1 0 0 / 11%);
+	--sidebar-ring: oklch(0.7 0 0);
+
+	--chrome: oklch(0.115 0 0);
+	--hairline: oklch(1 0 0 / 10%);
+	--hairline-strong: oklch(1 0 0 / 22%);
+	--canvas: oklch(0.135 0 0);
+	--canvas-dot: oklch(1 0 0 / 13%);
+	--frame-line: oklch(1 0 0 / 24%);
+	--ink: oklch(0.96 0 0);
+
+	--state-recalled: oklch(0.74 0.13 227);
+	--state-recalled-soft: oklch(0.74 0.13 227 / 15%);
+	--state-action: oklch(0.79 0.15 62);
+	--state-action-soft: oklch(0.79 0.15 62 / 15%);
+
+	--card-butter: oklch(0.32 0.05 95);
+	--card-rose: oklch(0.31 0.045 15);
+	--card-violet: oklch(0.31 0.045 305);
+	--card-moss: oklch(0.3 0.045 150);
+	--card-slate: oklch(0.3 0.015 260);
+	--card-clay: oklch(0.31 0.04 40);
+	--card-edge: oklch(1 0 0 / 16%);
+}
+
+@theme inline {
+	--font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+	--font-mono: "Geist Mono Variable", ui-monospace, monospace;
+	--font-serif: "Newsreader Variable", ui-serif, Georgia, serif;
+
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar: var(--sidebar);
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+
+	--color-chrome: var(--chrome);
+	--color-hairline: var(--hairline);
+	--color-hairline-strong: var(--hairline-strong);
+	--color-canvas: var(--canvas);
+	--color-canvas-dot: var(--canvas-dot);
+	--color-frame-line: var(--frame-line);
+	--color-ink: var(--ink);
+	--color-state-recalled: var(--state-recalled);
+	--color-state-action: var(--state-action);
+
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.6);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/40;
+	}
+
+	html {
+		@apply font-sans;
+	}
+
+	body {
+		@apply bg-background text-foreground text-[13px];
+		-webkit-font-smoothing: antialiased;
+		text-rendering: optimizeLegibility;
+	}
+
+	/* Desktop app, not a document: no rubber-banding, no accidental selection,
+	   no native drag-images. Text surfaces opt back in. */
+	html,
+	body {
+		@apply h-full overflow-hidden overscroll-none select-none;
+	}
+
+	input,
+	textarea,
+	[contenteditable="true"],
+	.selectable {
+		@apply select-text;
+	}
+
+	/* Hairline scrollbars. A study tool should not be full of chunky grey bars. */
+	::-webkit-scrollbar {
+		width: 9px;
+		height: 9px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: var(--hairline-strong);
+		border: 3px solid transparent;
+		background-clip: content-box;
+		border-radius: 999px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--muted-foreground);
+		border: 2px solid transparent;
+		background-clip: content-box;
+	}
+}
+
+@layer components {
+	/* A drafting label: mono, small, wide-tracked, quiet. Used for every section
+	   heading and metadata line in the app, which is what makes the whole thing
+	   read as one system. */
+	.label {
+		@apply font-mono text-[10px] tracking-[0.14em] uppercase;
+		color: var(--muted-foreground);
+	}
+
+	/* A row that scrolls but must not show a bar: the tool row is 32px tall and
+	   a scrollbar inside it would eat a third of the icons. */
+	.scrollbar-none {
+		scrollbar-width: none;
+	}
+
+	.scrollbar-none::-webkit-scrollbar {
+		display: none;
+	}
+
+	.hairline {
+		border-color: var(--hairline);
+	}
+
+	/* Prose in the assembled document. Serif, generous measure, and no controls
+	   anywhere near it. */
+	.prose-doc {
+		@apply font-serif;
+		font-size: 15.5px;
+		line-height: 1.72;
+		letter-spacing: 0.003em;
+	}
+
+	.prose-doc h2 {
+		@apply font-sans font-medium tracking-tight;
+	}
+
+	/* The writing surface, and the rendered document, share one typography.
+	   What you type is exactly what the document shows -- there is no separate
+	   "styled" view to go and fiddle with. */
+	.edra-surface .tiptap,
+	.prose-doc .tiptap {
+		font-family: var(--font-serif);
+		font-size: 16.5px;
+		line-height: 1.72;
+		letter-spacing: 0.003em;
+	}
+
+	.edra-surface .tiptap > p {
+		margin: 0.55rem 0;
+	}
+
+	/* Headings stay in the grotesk so structure reads as structure. */
+	.edra-surface .tiptap :is(h1, h2, h3, h4),
+	.prose-doc .tiptap :is(h1, h2, h3, h4) {
+		font-family: var(--font-sans);
+		letter-spacing: -0.02em;
+	}
+
+	.edra-surface .tiptap h1 {
+		font-size: 1.75rem;
+		font-weight: 600;
+	}
+
+	.edra-surface .tiptap h2 {
+		font-size: 1.375rem;
+		font-weight: 600;
+	}
+
+	.edra-surface .tiptap h3 {
+		font-size: 1.125rem;
+		font-weight: 600;
+	}
+
+	/* A caret you can actually see on a near-black surface. */
+	.edra-surface .tiptap {
+		caret-color: var(--foreground);
+	}
+
+	.edra-surface .tiptap ::selection,
+	.edra-surface .tiptap::selection {
+		background: color-mix(in oklch, var(--foreground) 18%, transparent);
+	}
+
+	/* Inline code and quotes, monochrome. */
+	.edra-surface .tiptap code,
+	.prose-doc .tiptap code {
+		font-family: var(--font-mono);
+		font-size: 0.85em;
+	}
+
+	.edra-surface .tiptap blockquote,
+	.prose-doc .tiptap blockquote {
+		border-left: 2px solid var(--hairline-strong);
+		padding-left: 1rem;
+		font-style: italic;
+	}
+}
+
+@layer components {
+	.svelte-flow {
+		--xy-background-color: var(--canvas);
+		--xy-selection-background-color: color-mix(in oklch, var(--foreground) 5%, transparent);
+		--xy-selection-border: 1px dashed var(--frame-line);
+	}
+
+	/* Selection is drawn on the node itself, so kill the default rings. */
+	.svelte-flow__node.selected,
+	.svelte-flow__node:focus,
+	.svelte-flow__node:focus-visible {
+		@apply outline-none;
+	}
+
+	/* Ports are invisible and inert unless the connect tool is on: a handle
+	   sitting under the pointer during ordinary work steals every drag. */
+	.svelte-flow__handle {
+		@apply pointer-events-none opacity-0;
+	}
+
+	.svelte-flow__handle.canvas-port {
+		@apply pointer-events-auto opacity-100;
+		width: 9px;
+		height: 9px;
+		border: 1px solid var(--foreground);
+		background: var(--background);
+	}
+
+	.svelte-flow__edge-path {
+		stroke: var(--frame-line);
+		stroke-width: 1.5;
+	}
+
+	.svelte-flow__edge.selected .svelte-flow__edge-path,
+	.svelte-flow__edge:hover .svelte-flow__edge-path {
+		stroke: var(--foreground);
+	}
+
+	.svelte-flow__connectionline path {
+		stroke: var(--foreground);
+		stroke-width: 1.5;
+	}
+
+	/* Frames must not swallow drags aimed at the notes sitting inside them.
+	   Pointer events are re-enabled only on the frame's own handle. */
+	.svelte-flow__node-frame {
+		@apply pointer-events-none;
+	}
+
+	.svelte-flow__node-frame .frame-handle {
+		@apply pointer-events-auto;
+	}
+
+	.svelte-flow__controls {
+		@apply overflow-hidden rounded-md border shadow-none;
+		border-color: var(--hairline);
+		background: var(--card);
+	}
+
+	.svelte-flow__controls-button {
+		@apply border-0 bg-transparent;
+		border-bottom: 1px solid var(--hairline) !important;
+		fill: var(--muted-foreground);
+	}
+
+	.svelte-flow__controls-button:hover {
+		background: var(--accent);
+		fill: var(--foreground);
+	}
+}

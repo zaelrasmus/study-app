@@ -1,0 +1,16 @@
+-- Card colour, per placement.
+--
+-- This reverses the earlier rule that colour encodes knowledge state and
+-- nothing else. Deliberately, and the two are kept in separate visual channels
+-- so neither drowns the other: a chosen colour is the card's *fill*, pale like
+-- tinted paper, while state stays the thin saturated rule down the leading edge
+-- and the mark beside the title.
+--
+-- It lives on the placement rather than the note, because colour here is a
+-- spatial device -- this cluster is one thing, that cluster is another -- and
+-- the same note can legitimately belong to different clusters on different
+-- boards. A note carries meaning; a card carries an arrangement.
+--
+-- Null means no colour, which stays the default: a board only becomes colourful
+-- because you made it so.
+ALTER TABLE canvas_nodes ADD COLUMN color TEXT;
