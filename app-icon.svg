@@ -1,23 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <!-- Nova app icon.
+  <!-- study-app icon.
 
-       Achromatic on purpose. The application's palette rule (src/app.css) is that
-       the chrome carries no hue at all and that colour is reserved for encoding
-       knowledge state; an accent in the launcher icon would be the one decorative
-       use of colour in the whole product. So the mark works the way the rest of the
-       interface does: weight, contrast, negative space.
+       Deliberately not a letter: the product name is a working title, and a
+       monogram would have to be redrawn the moment it changes.
 
-       Three layers, in the app's own idiom: the dark tile is the chrome, the dot
-       lattice is the canvas, the flare behind the mark is the nova. -->
+       Achromatic on purpose. The palette rule in src/app.css is that the chrome
+       carries no hue and that colour is reserved for encoding knowledge state;
+       an accent here would be the one decorative use of colour in the product.
+       So the mark works the way the interface does: weight, contrast, negative
+       space.
+
+       The mark is three nodes on a rising chain, growing as they climb. It is
+       the argument the README makes: scattered questions consolidating into
+       one finished document, and it is the node graph the boards are actually
+       built from. It reads as a graph rather than a ramp because the middle
+       node sits off the axis. -->
   <defs>
-    <!-- Tile: card-dark falling to chrome-dark, the two surfaces the app already uses. -->
+    <!-- Tile: card-dark falling to chrome-dark, the two surfaces the app uses. -->
     <linearGradient id="tile" x1="512" y1="0" x2="512" y2="1024" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#1e1e1e"/>
       <stop offset="1" stop-color="#070707"/>
     </linearGradient>
 
-    <!-- The nova: light behind the letter, not a shape beside it. -->
-    <radialGradient id="flare" cx="512" cy="436" r="476" gradientUnits="userSpaceOnUse">
+    <!-- Light behind the mark, so the tile has a centre. -->
+    <radialGradient id="lift" cx="512" cy="436" r="476" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
       <stop offset="0.62" stop-color="#ffffff" stop-opacity="0.022"/>
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
@@ -29,7 +35,7 @@
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
 
-    <!-- Canvas dot lattice, at canvas-dot weight. Invisible in the taskbar,
+    <!-- The canvas dot lattice, at canvas-dot weight. Invisible in the taskbar,
          gives the large renders texture. -->
     <pattern id="dots" x="32" y="32" width="96" height="96" patternUnits="userSpaceOnUse">
       <circle cx="48" cy="48" r="6" fill="#ffffff" fill-opacity="0.07"/>
@@ -41,16 +47,22 @@
   <g clip-path="url(#tileClip)">
     <rect width="1024" height="1024" fill="url(#tile)"/>
     <rect width="1024" height="1024" fill="url(#dots)"/>
-    <rect width="1024" height="1024" fill="url(#flare)"/>
+    <rect width="1024" height="1024" fill="url(#lift)"/>
     <rect width="1024" height="1024" fill="url(#spec)"/>
   </g>
 
-  <!-- N. Stems 86 wide; the diagonal is 106 across so that its *perpendicular*
-       thickness lands at 88 and the three strokes read as one weight. Terminals are
-       cut flat and horizontal — no overshoot, no taper — which is the grotesk the
-       chrome is set in. -->
-  <path d="M299 277 L405 277 L639 620.6875 L639 277 L725 277 L725 747 L619 747 L385 403.3125 L385 747 L299 747 Z"
-        fill="#f2f2f2"/>
+  <!-- Edges first, nodes over them, so the joins stay clean without masking.
+       Stroke 38 against node radii 58/82/110: heavy enough to hold at 16px,
+       where the smallest node is the first thing to disappear. -->
+  <g stroke="#f2f2f2" stroke-width="38" stroke-linecap="round" fill="none">
+    <path d="M259 764 L446 553"/>
+    <path d="M446 553 L714 313"/>
+  </g>
+  <g fill="#f2f2f2">
+    <circle cx="259" cy="764" r="58"/>
+    <circle cx="446" cy="553" r="82"/>
+    <circle cx="714" cy="313" r="110"/>
+  </g>
 
   <!-- Hairline, at hairline weight, so the tile keeps an edge on a dark taskbar. -->
   <rect x="1" y="1" width="1022" height="1022" rx="223.5" fill="none"
