@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Nova app icon.
+
+       Achromatic on purpose. The application's palette rule (src/app.css) is that
+       the chrome carries no hue at all and that colour is reserved for encoding
+       knowledge state; an accent in the launcher icon would be the one decorative
+       use of colour in the whole product. So the mark works the way the rest of the
+       interface does: weight, contrast, negative space.
+
+       Three layers, in the app's own idiom: the dark tile is the chrome, the dot
+       lattice is the canvas, the flare behind the mark is the nova. -->
+  <defs>
+    <!-- Tile: card-dark falling to chrome-dark, the two surfaces the app already uses. -->
+    <linearGradient id="tile" x1="512" y1="0" x2="512" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1e1e1e"/>
+      <stop offset="1" stop-color="#070707"/>
+    </linearGradient>
+
+    <!-- The nova: light behind the letter, not a shape beside it. -->
+    <radialGradient id="flare" cx="512" cy="436" r="476" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.62" stop-color="#ffffff" stop-opacity="0.022"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Specular top edge. Reads as a physical tile rather than a flat swatch. -->
+    <linearGradient id="spec" x1="512" y1="0" x2="512" y2="320" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.085"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Canvas dot lattice, at canvas-dot weight. Invisible in the taskbar,
+         gives the large renders texture. -->
+    <pattern id="dots" x="32" y="32" width="96" height="96" patternUnits="userSpaceOnUse">
+      <circle cx="48" cy="48" r="6" fill="#ffffff" fill-opacity="0.07"/>
+    </pattern>
+
+    <clipPath id="tileClip"><rect width="1024" height="1024" rx="224"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#tileClip)">
+    <rect width="1024" height="1024" fill="url(#tile)"/>
+    <rect width="1024" height="1024" fill="url(#dots)"/>
+    <rect width="1024" height="1024" fill="url(#flare)"/>
+    <rect width="1024" height="1024" fill="url(#spec)"/>
+  </g>
+
+  <!-- N. Stems 86 wide; the diagonal is 106 across so that its *perpendicular*
+       thickness lands at 88 and the three strokes read as one weight. Terminals are
+       cut flat and horizontal — no overshoot, no taper — which is the grotesk the
+       chrome is set in. -->
+  <path d="M299 277 L405 277 L639 620.6875 L639 277 L725 277 L725 747 L619 747 L385 403.3125 L385 747 L299 747 Z"
+        fill="#f2f2f2"/>
+
+  <!-- Hairline, at hairline weight, so the tile keeps an edge on a dark taskbar. -->
+  <rect x="1" y="1" width="1022" height="1022" rx="223.5" fill="none"
+        stroke="#ffffff" stroke-opacity="0.10" stroke-width="2"/>
+</svg>
