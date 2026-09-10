@@ -39,15 +39,33 @@
 	});
 
 	/**
-	 * Ticking one, from here.
+	 * Ticking one, from here — and unticking it.
 	 *
-	 * This edits the note's document — the body stays the single truth — and the
-	 * task drops out of the list because it is no longer open. It is removed
-	 * from the list first so the click feels immediate; the write follows.
+	 * This edits the note's document, so the body stays the single truth. What
+	 * it no longer does is take the row away. A task that vanishes when you
+	 * finish it removes the only evidence the list is moving, at the exact
+	 * moment that evidence is worth having: three ticked rows sitting there is
+	 * what makes the fourth one feel worth starting. The panel is one day wide,
+	 * so nothing accumulates.
+	 *
+	 * It also stays exactly where it was. Sorting the finished ones to the
+	 * bottom would be a gentler kind of disappearing — the row you just touched
+	 * would still slide out from under the pointer.
+	 *
+	 * Flipped locally first so the click feels immediate; the write follows.
 	 */
-	async function complete(task: ipc.DueTask) {
-		tasks = tasks.filter((t) => t.id !== task.id);
-		await ipc.setTaskDone(task.id, true);
+	async function toggle(task: ipc.DueTask) {
+		const next = !task.done;
+		task.done = next;
+
+		// If an editor has this note open, its copy of the document is the live
+		// one, and writing to the database behind it would be undone the moment
+		// it next saved. Ticking the box in the editor is the same edit made in
+		// the place that owns it — and you watch it happen in the note beside
+		// this panel.
+		if (slot.setTaskInOpenDocument(task.id, next)) return;
+
+		await ipc.setTaskDone(task.id, next);
 	}
 
 	/**
@@ -61,7 +79,7 @@
 
 	function onSingle(task: ipc.DueTask) {
 		clearTimeout(pending);
-		pending = setTimeout(() => complete(task), 220);
+		pending = setTimeout(() => toggle(task), 220);
 	}
 
 	function onDouble(task: ipc.DueTask) {
@@ -72,7 +90,7 @@
 	function taskMenu(event: MouseEvent, task: ipc.DueTask) {
 		menu.show(event, [
 			{ label: 'Open the note it lives in', onpick: () => slot.openNote?.(task.note_id) },
-			{ label: 'Mark it done', onpick: () => complete(task) },
+			{ label: task.done ? 'Put it back' : 'Mark it done', onpick: () => toggle(task) },
 			{
 				label: 'Delete the note',
 				destructive: true,
@@ -117,18 +135,30 @@
 				onclick={() => onSingle(task)}
 				ondblclick={() => onDouble(task)}
 				oncontextmenu={(e) => taskMenu(e, task)}
-				title="Click to complete · double-click to open the note"
+				title={task.done
+					? 'Click to put it back · double-click to open the note'
+					: 'Click to complete · double-click to open the note'}
 			>
-				<div class="flex items-start gap-2">
+				<div
+					class="flex items-start gap-2 transition-opacity"
+					style="opacity: {task.done ? 0.45 : 1}"
+				>
 					<!-- A real box now. It writes back into the note's document, so
 					     the body is still the only truth — this is the same edit
-					     you would make by clicking it in the editor. -->
+					     you would make by clicking it in the editor.
+
+					     Filled when done rather than gone: the mark is the point. -->
 					<span
 						class="mt-[4px] size-2.5 shrink-0 rounded-[2px] border transition-colors"
-						style="border-color: var(--hairline-strong)"
+						style="border-color: var(--hairline-strong); background: {task.done
+							? 'var(--foreground)'
+							: 'transparent'}"
 						aria-hidden="true"
 					></span>
-					<span class="min-w-0 grow text-[12px] leading-snug">
+					<span
+						class="min-w-0 grow text-[12px] leading-snug"
+						style={task.done ? 'text-decoration: line-through' : ''}
+					>
 						{task.text.replace(/due:\d{4}-\d{2}-\d{2}/, '').trim()}
 					</span>
 					{#if task.due_on}

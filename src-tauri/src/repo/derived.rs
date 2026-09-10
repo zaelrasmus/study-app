@@ -304,6 +304,18 @@ fn check_nth_html(html: &str, target: usize, done: bool) -> String {
 /// not change a word of the note — the content hash is taken over the plaintext
 /// and comes out identical — so counting it as an edit would start the
 /// twenty-four hour cooling window and quietly block a recall you had earned.
+///
+/// # This writes the note body behind whoever is editing it
+///
+/// Safe only when nothing has the note open. An open editor holds its own copy
+/// of the document and will overwrite this from that copy the next time it
+/// saves — a keystroke, changing day, or simply leaving the screen — and the
+/// tick vanishes seconds later with nothing in any log.
+///
+/// The frontend guards this: an editor registers the note it holds, and a tick
+/// aimed at a held note is made *through* that editor instead of calling here.
+/// See `slot.holdDocument` and `src/lib/tasks.ts`. Any new surface that edits
+/// a note body from outside its editor has to respect the same rule.
 pub async fn set_done(pool: &SqlitePool, task_id: &str, done: bool) -> Result<()> {
     let Some((note_id, position)) = sqlx::query_as::<_, (String, i64)>(
         "SELECT note_id, position FROM note_tasks WHERE id = ?1",
@@ -388,8 +400,7 @@ pub async fn due_on(pool: &SqlitePool, day: &str) -> Result<Vec<DueTask>> {
                 n.title AS note_title, n.journal_day
            FROM note_tasks t
            JOIN notes n ON n.id = t.note_id
-          WHERE t.done = 0
-            AND (t.due_on = ?1 OR (t.due_on IS NULL AND n.journal_day = ?1))
+          WHERE t.due_on = ?1 OR (t.due_on IS NULL AND n.journal_day = ?1)
           ORDER BY t.due_on IS NULL, n.title, t.position",
     )
     .bind(day)
@@ -399,20 +410,24 @@ pub async fn due_on(pool: &SqlitePool, day: &str) -> Result<Vec<DueTask>> {
     Ok(tasks)
 }
 
-/// Every open task, dated or not.
+/// Every task, dated or not, ticked or not.
 ///
 /// The Tasks screen shows all of them because that is what a screen called
 /// Tasks is for, and because a task you wrote and cannot find again is worse
 /// than a list that is longer than you would like. The *panel* is the bounded
 /// view: it stays one day wide, which is where the "a day's worth is work, a
 /// backlog is a reproach" rule still applies.
-pub async fn all_open(pool: &SqlitePool) -> Result<Vec<DueTask>> {
+///
+/// Done ones are included rather than dropped. Ticking something and watching
+/// it vanish takes the evidence away at the exact moment it is worth having:
+/// a finished row is the only proof the list is moving, and the interface
+/// renders it struck through in the place it already occupied.
+pub async fn all_tasks(pool: &SqlitePool) -> Result<Vec<DueTask>> {
     let tasks = sqlx::query_as::<_, DueTask>(
         "SELECT t.id, t.note_id, t.text, t.done, t.due_on, t.position,
                 n.title AS note_title, n.journal_day
            FROM note_tasks t
            JOIN notes n ON n.id = t.note_id
-          WHERE t.done = 0
           ORDER BY t.due_on IS NULL, t.due_on, n.title, t.position",
     )
     .fetch_all(pool)

@@ -182,7 +182,16 @@
 			{:else if active === 'tasks'}
 				<TasksTool day={slot.day} />
 			{:else if active === 'outline'}
-				<OutlineTool {frames} study={topic?.study ?? false} onfocus={onfocusframe} />
+				<!-- A board lists its frames; a document lists its headings. The
+				     centre decides which, so the panel never has to guess. -->
+				<OutlineTool
+					{frames}
+					headings={slot.headings}
+					document={context === 'note' || context === 'journal'}
+					study={topic?.study ?? false}
+					onfocus={onfocusframe}
+					onfocusheading={slot.focusHeading}
+				/>
 			{/if}
 		</div>
 	</aside>

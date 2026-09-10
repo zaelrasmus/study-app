@@ -9,6 +9,26 @@
 	 * The arrangement is the structure. Frames carry document order explicitly
 	 * and show it; membership in a frame is what commits a node to the document;
 	 * anything outside a frame stays scratch.
+	 *
+	 * **This screen deliberately opts out of `data` invalidation.**
+	 *
+	 * Every other screen re-reads itself when `data.notes` or `data.boards`
+	 * changes (see `src/lib/state/data.svelte.ts`). This one loads once per
+	 * board and then owns its state: dragging a node writes optimistically and
+	 * tells the backend afterwards, so a reload arriving mid-drag would snap the
+	 * node back to where the database still thinks it is — while your finger is
+	 * still moving it.
+	 *
+	 * That is why the load effect is keyed on `topicId` alone. It looks like an
+	 * oversight and is not. If the canvas ever needs to hear about outside
+	 * changes, it has to reconcile them against edits in flight, not re-read.
+	 *
+	 * State here is two layers: the domain objects from the snapshot
+	 * (`frames`, `canvasNodes`, `canvasEdges`, and the `notes`/`assets`/
+	 * `questions` lookups) and the SvelteFlow `nodes`/`edges` projected from
+	 * them by `rebuild()`. Domain state is the truth; the flow arrays are a
+	 * view, and anything that changes what a card should look like has to call
+	 * `rebuild()` or the board will not move.
 	 */
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
@@ -285,6 +305,13 @@
 
 	// -- projection -------------------------------------------------------
 
+	/**
+	 * Projects the domain state into the arrays SvelteFlow renders.
+	 *
+	 * Called after anything that changes how a card should look — not just after
+	 * a load. SvelteFlow holds its own copies, so mutating `canvasNodes` alone
+	 * changes nothing on screen.
+	 */
 	function rebuild() {
 		const framedIds = new Set(canvasNodes.filter((n) => n.frame_id).map((n) => n.id));
 

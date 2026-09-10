@@ -1,10 +1,10 @@
 <script lang="ts">
 	/**
-	 * Every open task.
+	 * Every task.
 	 *
 	 * Tasks are an inline block in any note, not a thing you file somewhere.
 	 * This screen only makes them findable — and it shows **all** of them,
-	 * including the ones with no `due:` date.
+	 * including the ones with no `due:` date and the ones already ticked.
 	 *
 	 * That is a correction. Both queries used to ask for one specific day, so a
 	 * checkbox typed into the journal without a date was indexed and then
@@ -16,6 +16,17 @@
 	 * wide, which is where "a day's worth is work, a backlog is a reproach" does
 	 * its job. A screen you went to deliberately is a different thing from a
 	 * number sitting in the corner of your eye.
+	 *
+	 * **Known, accepted, and the only unbounded list in the app.** Finished tasks
+	 * are kept so that ticking one leaves evidence rather than a gap, and they
+	 * stay in the band their date puts them in — so months from now, completed
+	 * work dated in the past will sit in "Now" alongside live work.
+	 *
+	 * Bounding it needs a completion timestamp, and there is nowhere cheap to put
+	 * one: `note_tasks` is rebuilt from the note body on every save, so a column
+	 * added there is wiped by the next keystroke. It would have to live in the
+	 * document itself, as an attribute on the task item. Worth doing only when
+	 * the pile actually becomes annoying.
 	 */
 	import * as ipc from '$lib/ipc';
 	import { slot } from '$lib/state/slot.svelte';
@@ -52,7 +63,7 @@
 		{
 			id: 'now',
 			label: 'Now',
-			hint: 'Due today, or dated earlier and still open',
+			hint: 'Due today, or dated earlier',
 			items: tasks.filter((t) => t.due_on !== null && t.due_on <= today)
 		},
 		{
@@ -94,10 +105,21 @@
 	/**
 	 * Ticking one edits the note's document, so the body stays the only truth —
 	 * it is the same edit you would make by clicking the box in the editor.
+	 *
+	 * The row stays put, struck through, rather than vanishing. Finishing
+	 * something and watching the evidence disappear is the opposite of momentum,
+	 * and a row that slides away as you tick it takes the next one with it.
+	 * Clicking a finished task puts it back.
 	 */
-	async function complete(task: ipc.DueTask) {
-		tasks = tasks.filter((t) => t.id !== task.id);
-		await ipc.setTaskDone(task.id, true);
+	async function toggle(task: ipc.DueTask) {
+		const next = !task.done;
+		task.done = next;
+
+		// An open editor owns its document; writing behind it would be undone the
+		// moment it next saved. See `slot.setTaskInOpenDocument`.
+		if (slot.setTaskInOpenDocument(task.id, next)) return;
+
+		await ipc.setTaskDone(task.id, next);
 	}
 
 	/**
@@ -111,7 +133,7 @@
 
 	function onSingle(task: ipc.DueTask) {
 		clearTimeout(pending);
-		pending = setTimeout(() => complete(task), 220);
+		pending = setTimeout(() => toggle(task), 220);
 	}
 
 	function onDouble(task: ipc.DueTask) {
@@ -122,7 +144,7 @@
 	function taskMenu(event: MouseEvent, task: ipc.DueTask) {
 		menu.show(event, [
 			{ label: 'Open the note it lives in', onpick: () => (editingNoteId = task.note_id) },
-			{ label: 'Mark it done', onpick: () => complete(task) },
+			{ label: task.done ? 'Put it back' : 'Mark it done', onpick: () => toggle(task) },
 			{
 				label: 'Delete the note',
 				destructive: true,
@@ -153,7 +175,8 @@
 		<h1 class="text-[26px] font-semibold tracking-tight">Tasks</h1>
 		<p class="text-muted-foreground mt-1.5 text-[12.5px] leading-relaxed">
 			Written inside notes, gathered here. Add <code class="font-mono text-[12px]">due:{today}</code>
-			to one and it also turns up in the panel for that day.
+			to one and it also turns up in the panel for that day. Finished ones stay
+			where they are, struck through — click one to put it back.
 		</p>
 
 		<div class="mt-9 flex flex-col gap-8">
@@ -171,20 +194,31 @@
 								onclick={() => onSingle(task)}
 								ondblclick={() => onDouble(task)}
 								oncontextmenu={(e) => taskMenu(e, task)}
-								title="Click to complete · double-click to open the note"
-								class="group bg-card hover:border-foreground/25 flex flex-col gap-2 rounded-lg border p-3.5 text-left transition-colors"
-								style="border-color: var(--hairline)"
+								title={task.done
+									? 'Click to put it back · double-click to open the note'
+									: 'Click to complete · double-click to open the note'}
+								class="group bg-card hover:border-foreground/25 flex flex-col gap-2 rounded-lg border p-3.5 text-left transition-all"
+								style="border-color: var(--hairline); opacity: {task.done ? 0.45 : 1}"
 							>
 								<div class="flex items-start gap-2.5">
 									<!-- A real box: ticking it writes back into the note's
 									     document, which is the same edit you would make by
-									     clicking it in the editor. -->
+									     clicking it in the editor.
+
+									     Filled when done rather than gone. The card keeps its
+									     place in the band it was already in — the mark is what
+									     changes, not whether the work is still on screen. -->
 									<span
 										class="group-hover:border-foreground/50 mt-[3px] size-3 shrink-0 rounded-[3px] border transition-colors"
-										style="border-color: var(--hairline-strong)"
+										style="border-color: var(--hairline-strong); background: {task.done
+											? 'var(--foreground)'
+											: 'transparent'}"
 										aria-hidden="true"
 									></span>
-									<span class="min-w-0 grow text-[13px] leading-snug">
+									<span
+										class="min-w-0 grow text-[13px] leading-snug"
+										style={task.done ? 'text-decoration: line-through' : ''}
+									>
 										{clean(task.text)}
 									</span>
 								</div>
@@ -202,7 +236,7 @@
 				</section>
 			{:else}
 				<p class="text-muted-foreground text-[13px] leading-relaxed">
-					Nothing open. Type a checkbox in any note and it turns up here.
+					Nothing yet. Type a checkbox in any note and it turns up here.
 				</p>
 			{/each}
 		</div>

@@ -111,7 +111,7 @@
 				memory mode and it will turn up here.
 			</p>
 			<div class="flex gap-2">
-				<Button size="sm" class="h-8 text-[12px]" onclick={() => goto('/')}>
+				<Button size="sm" class="h-8 text-[12px]" onclick={() => goto('/questions')}>
 					Open questions
 				</Button>
 			</div>

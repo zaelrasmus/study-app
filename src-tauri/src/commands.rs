@@ -304,13 +304,13 @@ pub async fn set_task_done(db: Db<'_>, task_id: String, done: bool) -> Result<()
     repo::derived::set_done(&db, &task_id, done).await
 }
 
-/// Every open task, dated or not. What the Tasks screen shows.
+/// Every task, dated or not, ticked or not. What the Tasks screen shows.
 #[tauri::command]
 pub async fn all_tasks(db: Db<'_>) -> Result<Vec<repo::derived::DueTask>> {
-    repo::derived::all_open(&db).await
+    repo::derived::all_tasks(&db).await
 }
 
-/// Tasks due on one day. What the panel shows.
+/// A day's tasks, done ones included. What the panel shows.
 #[tauri::command]
 pub async fn tasks_due(db: Db<'_>, day: String) -> Result<Vec<repo::derived::DueTask>> {
     repo::derived::due_on(&db, &day).await
@@ -491,6 +491,10 @@ pub async fn create_note_on_canvas(
     Ok((view(note), node))
 }
 
+/// Nests one board inside another as a card that opens it.
+///
+/// Reachable over IPC and covered by tests, but no interface gesture creates
+/// one yet — see the note on `addTopicNode` in `src/lib/ipc.ts`.
 #[tauri::command]
 pub async fn add_topic_node(
     db: Db<'_>,

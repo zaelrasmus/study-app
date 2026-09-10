@@ -17,6 +17,20 @@
  */
 export type EditorPresentation = 'full' | 'dialog';
 
+/**
+ * Where the app opens.
+ *
+ * The day's page, by default. The question queue was the old landing and it is
+ * the wrong greeting: a list of things you have not answered is a bill, and the
+ * one thing this app has to protect is the moment you sit down with something
+ * to write down. Capture first; the queue is a place you choose to go.
+ *
+ * Stored rather than hard-coded because the right answer is personal, and the
+ * queue kept its own address when this moved, so switching costs nothing.
+ */
+export type StartPage = 'journal' | 'questions';
+
+const START_KEY = 'study.startPage';
 const KEY = 'study.editorPresentation';
 const LEFT_KEY = 'study.sidebarWidth';
 const RIGHT_KEY = 'study.slotWidth';
@@ -29,8 +43,14 @@ export const SLOT_MAX = 560;
 
 class Prefs {
 	editorPresentation = $state<EditorPresentation>('full');
+	startPage = $state<StartPage>('journal');
 	sidebarWidth = $state(216);
 	slotWidth = $state(300);
+
+	/** Where `/` sends you. The only place that turns the choice into a route. */
+	get startPath() {
+		return this.startPage === 'questions' ? '/questions' : '/journal';
+	}
 
 	constructor() {
 		// Storage can throw outright in some contexts, so never let it take the
@@ -38,6 +58,9 @@ class Prefs {
 		try {
 			const stored = localStorage.getItem(KEY);
 			if (stored === 'full' || stored === 'dialog') this.editorPresentation = stored;
+
+			const start = localStorage.getItem(START_KEY);
+			if (start === 'journal' || start === 'questions') this.startPage = start;
 
 			const left = Number(localStorage.getItem(LEFT_KEY));
 			if (left) this.sidebarWidth = clamp(left, SIDEBAR_MIN, SIDEBAR_MAX);
@@ -74,6 +97,11 @@ class Prefs {
 		} catch {
 			/* it just will not persist */
 		}
+	}
+
+	setStartPage(value: StartPage) {
+		this.startPage = value;
+		this.write(START_KEY, value);
 	}
 }
 

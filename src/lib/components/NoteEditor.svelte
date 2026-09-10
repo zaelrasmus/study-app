@@ -29,6 +29,9 @@
 	import { Edra, createEditor } from '$lib/components/edra/shadcn/index.js';
 	import * as ipc from '$lib/ipc';
 	import { slot } from '$lib/state/slot.svelte';
+	import { headingsOf, outlineKey, goToHeading } from '$lib/outline';
+	import { keepRoomBelow } from '$lib/room';
+	import { setTaskChecked } from '$lib/tasks';
 	import type { Note } from '$lib/types';
 	import { STATE_MEANING } from '$lib/types';
 	import StateMark from '$lib/components/canvas/StateMark.svelte';
@@ -85,7 +88,45 @@
 
 	let timer: ReturnType<typeof setTimeout> | undefined;
 
-	const editor = createEditor({ onUpdate: () => schedule() });
+	const editor = createEditor({
+		onUpdate: () => {
+			publishOutline();
+			schedule();
+		}
+	});
+
+	// The line you are writing never sits flat against the bottom of the window.
+	keepRoomBelow(editor);
+
+	/**
+	 * While this note is open, it owns the document — see `slot.holdDocument`.
+	 *
+	 * Only outside memory mode. During a blind write the surface has been
+	 * cleared and holds nothing resembling the note, so ticking a checkbox
+	 * "in the document" would write that emptiness back.
+	 */
+	$effect(() => {
+		const id = note?.id;
+		if (!id || mode !== 'off') return;
+		return slot.holdDocument(id, (index, done) => setTaskChecked(editor, index, done));
+	});
+
+	/**
+	 * The Outline panel, kept in step with this note.
+	 *
+	 * Only published when the shape of the document changed, so typing inside a
+	 * paragraph does not rebuild the panel on every keystroke.
+	 */
+	let lastOutline = '';
+
+	function publishOutline(force = false) {
+		if (!editor) return;
+		const found = headingsOf(editor);
+		const key = outlineKey(found);
+		if (!force && key === lastOutline) return;
+		lastOutline = key;
+		slot.setOutline(found, (pos) => goToHeading(editor, pos));
+	}
 
 	onMount(async () => {
 		const loaded = await ipc.getNote(noteId);
@@ -95,6 +136,8 @@
 		title = loaded.title;
 		summary = loaded.summary;
 		loadBody(loaded.body_json);
+		// Filling the surface emits no update, so this does not arrive on its own.
+		publishOutline(true);
 		slot.enterNote(loaded.id, loaded.source_note_id, () => {
 					picking = 'source';
 					pickerOpen = true;
@@ -106,7 +149,9 @@
 	function loadBody(json: string) {
 		if (!editor || !json) return;
 		try {
-			editor.commands.setContent(JSON.parse(json));
+			// Filling the surface from the database is not an edit, and must not
+			// reach the autosave as one.
+			editor.commands.setContent(JSON.parse(json), { emitUpdate: false });
 		} catch {
 			// A body we cannot parse is left alone rather than silently wiped.
 		}
@@ -271,7 +316,11 @@
 
 	function close() {
 		clearTimeout(timer);
-		save().finally(onclose);
+		// An untouched note is not rewritten on the way out. Its body would be
+		// this editor's copy, which is stale the moment anything else edited the
+		// note — closing it would then quietly undo that edit.
+		if (dirty) save().finally(onclose);
+		else onclose();
 	}
 
 	/**
@@ -286,6 +335,13 @@
 	 */
 	onDestroy(() => {
 		clearTimeout(timer);
+		// The screen underneath owns the outline again. It republishes its own.
+		slot.setOutline([], () => {});
+		// A debounced save still in the air is a sentence you typed. The close
+		// button writes it, but every other way out — navigating off the board,
+		// being remounted when you follow a backlink — used to discard it with
+		// the timer. Never worth an error, so a failure here stays quiet.
+		if (dirty) save().catch(() => {});
 		slot.unlock();
 		slot.leaveNote();
 	});
@@ -401,7 +457,12 @@
 					{#if editor}
 						<Edra {editor}>
 							<Edra.BubbleMenu />
-							<Edra.Content class="edra-surface cursor-text px-8 pb-24 *:outline-none" />
+							<!-- The run-off at the foot of the note. Inside the
+							     contenteditable, so clicking it puts the caret at the
+							     end rather than doing nothing, and deep enough that the
+							     last line you write is never pinned to the bottom edge
+							     of the window. -->
+							<Edra.Content class="edra-surface cursor-text px-8 pb-[45vh] *:outline-none" />
 							<Edra.DragHandle />
 						</Edra>
 					{/if}

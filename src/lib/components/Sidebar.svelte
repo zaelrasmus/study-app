@@ -20,6 +20,7 @@
 	import { session } from '$lib/state/session.svelte';
 	import { menu } from '$lib/state/menu.svelte';
 	import { data } from '$lib/state/data.svelte';
+	import { prefs } from '$lib/state/prefs.svelte';
 	import * as ipc from '$lib/ipc';
 	import type { Topic } from '$lib/types';
 
@@ -53,7 +54,7 @@
 	 */
 	const destinations = $derived([
 		{ href: '/journal', label: 'Journal', icon: JournalIcon, count: 0 },
-		{ href: '/', label: 'Questions', icon: QuestionsIcon, count: session.openQuestions },
+		{ href: '/questions', label: 'Questions', icon: QuestionsIcon, count: session.openQuestions },
 		{ href: '/review', label: 'Review', icon: ReviewIcon, count: session.reviewDue },
 		{ href: '/library', label: 'Library', icon: LibraryIcon, count: 0 },
 		{ href: '/tags', label: 'Tags', icon: TagsIcon, count: 0 },
@@ -61,7 +62,7 @@
 	]);
 
 	function isCurrent(href: string) {
-		return href === '/' ? path === '/' : path.startsWith(href);
+		return path.startsWith(href);
 	}
 
 	/**
@@ -125,7 +126,7 @@ Its arrangement goes: frames, placements and pointers. The notes on it stay in t
 
 		await ipc.deleteTopic(topic.id);
 		await session.refresh();
-		if (page.params.id === topic.id) goto('/');
+		if (page.params.id === topic.id) goto(prefs.startPath);
 	}
 
 	async function create() {

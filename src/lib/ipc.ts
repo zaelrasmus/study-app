@@ -371,6 +371,14 @@ export const addNoteNode = (topicId: string, noteId: string, x: number, y: numbe
 export const createNoteOnCanvas = (topicId: string, title: string, x: number, y: number) =>
 	mutate<[Note, CanvasNode]>(['notes', 'boards'], 'create_note_on_canvas', { topicId, title, x, y });
 
+/**
+ * Puts a board on a board, as a card that opens it.
+ *
+ * **Nothing calls this yet.** The backend is finished and covered by tests
+ * (including the cycle check — a board cannot end up inside itself), but no
+ * gesture in the canvas creates one. It is here rather than deleted because the
+ * missing half is the UI, not the model.
+ */
 export const addTopicNode = (
 	topicId: string,
 	targetTopicId: string,

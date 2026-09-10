@@ -1,3 +1,27 @@
+//! The Rust half: wiring, and nothing else.
+//!
+//! Everything this file does is arrange for three things to exist before the
+//! window appears — a database pool, the data directory, and the list of
+//! commands the frontend is allowed to call. There are no rules here; they live
+//! in `domain`, `note_state`, `review` and `repo`.
+//!
+//! The layers, in the order a request travels:
+//!
+//! ```text
+//! ipc.ts  ──invoke──▶  commands.rs  ──▶  repo/*.rs  ──▶  SQLite
+//!                          │                              │
+//!                          └── note_state.rs ◀── derives ──┘
+//! ```
+//!
+//! `commands` is deliberately thin: translate the arguments, call one repo
+//! function, wrap notes in `NoteView` so the frontend never has to know how
+//! knowledge state is computed. All SQL is in `repo` and nowhere else.
+//!
+//! **The handler list at the bottom is the whole API.** A command missing from
+//! it compiles perfectly and then fails at runtime with "command not found",
+//! which reads like a frontend bug and is not one. Adding a command means
+//! adding it in two places.
+
 pub mod commands;
 pub mod db;
 pub mod domain;
@@ -15,6 +39,7 @@ use tauri::Manager;
 /// needed an `AppHandle`, which is a lot of plumbing for one path.
 pub struct DataDir(pub std::path::PathBuf);
 
+/// Builds the app and blocks until the window closes.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
